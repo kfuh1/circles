@@ -31,13 +31,15 @@ saxpyCuda(int N, float alpha, float* xarray, float* yarray, float* resultarray) 
     float* device_x;
     float* device_y;
     float* device_result;
+    
+    int numBytes = sizeof(float) * N;
 
     //
     // TODO allocate device memory buffers on the GPU using cudaMalloc
     //
-    cudaMalloc(&device_x, totalBytes);
-    cudaMalloc(&device_y, totalBytes);
-    cudaMalloc(&device_result, totalBytes);
+    cudaMalloc(&device_x, numBytes);
+    cudaMalloc(&device_y, numBytes);
+    cudaMalloc(&device_result, numBytes);
 
     // start timing after allocation of device memory
     double startTime = CycleTimer::currentSeconds();
@@ -45,9 +47,9 @@ saxpyCuda(int N, float alpha, float* xarray, float* yarray, float* resultarray) 
     //
     // TODO copy input arrays to the GPU using cudaMemcpy
     //
-    cudaMemcpy(device_x, xarray, totalBytes, cudaMemcpyHostToDevice);
-    cudaMemcpy(device_y, yarray, totalBytes, cudaMemcpyHostToDevice);
-    cudaMemcpy(device_result, resultarray, totalBytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(device_x, xarray, numBytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(device_y, yarray, numBytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(device_result, resultarray, numBytes, cudaMemcpyHostToDevice);
     
     // Added timing code
     double startKernelTime = CycleTimer::currentSeconds();
@@ -63,9 +65,9 @@ saxpyCuda(int N, float alpha, float* xarray, float* yarray, float* resultarray) 
     //
     // TODO copy result from GPU using cudaMemcpy
     //
-    cudaMemcpy(xarray, device_x, totalBytes, cudaMemcpyDeviceToHost);
-    cudaMemcpy(yarray, device_y, totalBytes, cudaMemcpyDeviceToHost);
-    cudaMemcpy(resultarray, device_result, totalBytes, cudaMemcpyDeviceToHost);
+    cudaMemcpy(xarray, device_x, numBytes, cudaMemcpyDeviceToHost);
+    cudaMemcpy(yarray, device_y, numBytes, cudaMemcpyDeviceToHost);
+    cudaMemcpy(resultarray, device_result, numBytes, cudaMemcpyDeviceToHost);
 
     // end timing after result has been copied back into host memory
     double endTime = CycleTimer::currentSeconds();
