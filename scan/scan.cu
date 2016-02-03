@@ -76,7 +76,7 @@ void exclusive_scan(int* device_start, int length, int* device_result)
     
     for (int twod = 1; twod < N; twod*=2) {
       int twod1 = twod*2;
-      upSweep<<<N/THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(device_start, length, device_result, twod, twod1);
+      upSweep<<<1, N>>>(device_start, length, device_result, twod, twod1);
     }
 
     int* zero = 0;
@@ -85,7 +85,7 @@ void exclusive_scan(int* device_start, int length, int* device_result)
     for (int twod = N/2; twod >= 1; twod /= 2)
     {
       int twod1 = twod*2;
-      downSweep<<<N/THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(device_start, length, device_result, twod, twod1);
+      downSweep<<<1, N>>>(device_start, length, device_result, twod, twod1);
     }
 }
 
