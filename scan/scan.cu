@@ -11,8 +11,12 @@
 
 #include "CycleTimer.h"
 
-extern float toBW(int bytes, float sec);
+#define THREADS_PER_BLOCK 8
 
+extern float toBW(int bytes, float sec);
+void debug() {
+  printf("HELLO");
+}
 
 /* Helper function to round up to a power of 2. 
  */
@@ -28,6 +32,27 @@ static inline int nextPow2(int n)
     return n;
 }
 
+__global__ void upSweep(int* start, int length, int* result, int twod, int twod1) {
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  //printf("Index: %d\n", index);
+  //index = index % length;
+
+  /**for (int x = 0; x < length; x++) {
+    printf("%d\n", result[x]);
+  }**/
+
+  //printf("Mod index: %d\n", index);
+  result[index+twod1-1] += result[index+twod-1]; 
+}
+
+__global__ void downSweep(int* start, int length, int* result, int twod, int twod1) {
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  //index = index % length;
+  int t = result[index+twod-1];
+  result[index+twod-1] = result[index+twod1-1];
+  result[index+twod1-1] += t; // change twod1 to twod to reverse prefix sum.
+}
+
 void exclusive_scan(int* device_start, int length, int* device_result)
 {
     /* Fill in this function with your exclusive scan implementation.
@@ -39,6 +64,29 @@ void exclusive_scan(int* device_start, int length, int* device_result)
      * both the input and the output arrays are sized to accommodate the next
      * power of 2 larger than the input.
      */
+    debug();
+    int N = length;
+    printf("%d", N);
+    
+    cudaMemcpy(device_result, device_start, N*sizeof(int), cudaMemcpyDeviceToDevice);
+
+    /**for (int x = 0; x < length; x++) {
+      printf("%d\n", device_start[x]);
+    }**/
+    
+    for (int twod = 1; twod < N; twod*=2) {
+      int twod1 = twod*2;
+      upSweep<<<N/THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(device_start, length, device_result, twod, twod1);
+    }
+
+    int* zero = 0;
+    cudaMemcpy(device_result+(N-1), zero, sizeof(int), cudaMemcpyHostToDevice);
+    // downsweep phase.
+    for (int twod = N/2; twod >= 1; twod /= 2)
+    {
+      int twod1 = twod*2;
+      downSweep<<<N/THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(device_start, length, device_result, twod, twod1);
+    }
 }
 
 /* This function is a wrapper around the code you will write - it copies the
