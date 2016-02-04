@@ -181,6 +181,14 @@ double cudaScanThrust(int* inarray, int* end, int* resultarray) {
     return overallDuration;
 }
 
+__global__ findIndices() {
+  
+}
+
+__global__ setIndices() {
+  
+}
+
 int find_repeats(int *device_input, int length, int *device_output) {
     /* Finds all pairs of adjacent repeated elements in the list, storing the
      * indices of the first element of each pair (in order) into device_result.
@@ -192,7 +200,15 @@ int find_repeats(int *device_input, int length, int *device_output) {
      * of 2 in size, so you can use your exclusive_scan function with them if 
      * it requires that. However, you must ensure that the results of
      * find_repeats are correct given the original length.
-     */    
+     */
+    numThreads = N;
+    numBlocks = (numThreads + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
+    findIndices<<<numBlocks, THREADS_PER_BLOCK>>>()
+    
+
+
+      
+    setIndices<<<numBlocks, THREADS_PER_BLOCK>>>()
     return 0;
 }
 
