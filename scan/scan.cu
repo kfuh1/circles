@@ -34,16 +34,23 @@ static inline int nextPow2(int n)
 
 __global__ void upSweep(int* start, int length, int* result, int twod, int twod1) {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
+  
+  /**for (int x = 0; x < length; x++) {
+    printf("Index: %d, Element: %d", x, result[x]);
+  }
+  printf("\n");**/
 
-  if ((index % twod1) == (twod1 - 1)) {
+  if (index < length && (index % twod1) == 0) {
+    //printf("Index: %d\n", index);
     result[index+twod1-1] += result[index+twod-1]; 
   }
 }
 
 __global__ void downSweep(int* start, int length, int* result, int twod, int twod1) {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
-  
-  if ((index % twod1) == (twod1 - 1)) {
+
+  if (index < length && (index % twod1) == 0) {
+    //printf("Index: %d\n", index);
     int t = result[index+twod-1];
     result[index+twod-1] = result[index+twod1-1];
     result[index+twod1-1] += t; // change twod1 to twod to reverse prefix sum.
@@ -62,7 +69,8 @@ void exclusive_scan(int* device_start, int length, int* device_result)
      * power of 2 larger than the input.
      */
     //debug();
-    int N = length;
+    int N = nextPow2(length);
+    printf("length: %d\n", N);
     int numThreads = 0;
     int numBlocks = 0;
     //const int blocks = (N + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
@@ -116,8 +124,16 @@ double cudaScan(int* inarray, int* end, int* resultarray)
                cudaMemcpyHostToDevice);
 
     double startTime = CycleTimer::currentSeconds();
+    
+    // --kf
+    for (int x = 0; x < rounded_length; x++) {
+      printf("%d ", inarray[x]);
+    }
+
+    printf("\n");
 
     exclusive_scan(device_input, end - inarray, device_result);
+    
 
     // Wait for any work left over to be completed.
     cudaThreadSynchronize();
@@ -126,6 +142,12 @@ double cudaScan(int* inarray, int* end, int* resultarray)
     
     cudaMemcpy(resultarray, device_result, (end - inarray) * sizeof(int),
                cudaMemcpyDeviceToHost);
+    
+    for (int y = 0; y < rounded_length; y++) {
+      printf("%d ", resultarray[y]);
+    }
+    
+    printf("\n----------------------------\n");
     return overallDuration;
 }
 
