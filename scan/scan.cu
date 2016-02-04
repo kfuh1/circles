@@ -11,7 +11,7 @@
 
 #include "CycleTimer.h"
 
-#define THREADS_PER_BLOCK 8
+#define THREADS_PER_BLOCK 512
 
 extern float toBW(int bytes, float sec);
 void debug() {
@@ -34,23 +34,20 @@ static inline int nextPow2(int n)
 
 __global__ void upSweep(int* start, int length, int* result, int twod, int twod1) {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
-  //printf("Index: %d\n", index);
-  //index = index % length;
 
-  /**for (int x = 0; x < length; x++) {
-    printf("%d\n", result[x]);
-  }**/
-
-  //printf("Mod index: %d\n", index);
-  result[index+twod1-1] += result[index+twod-1]; 
+  if ((index % twod1) == (twod1 - 1)) {
+    result[index+twod1-1] += result[index+twod-1]; 
+  }
 }
 
 __global__ void downSweep(int* start, int length, int* result, int twod, int twod1) {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
-  //index = index % length;
-  int t = result[index+twod-1];
-  result[index+twod-1] = result[index+twod1-1];
-  result[index+twod1-1] += t; // change twod1 to twod to reverse prefix sum.
+  
+  if ((index % twod1) == (twod1 - 1)) {
+    int t = result[index+twod-1];
+    result[index+twod-1] = result[index+twod1-1];
+    result[index+twod1-1] += t; // change twod1 to twod to reverse prefix sum.
+  }
 }
 
 void exclusive_scan(int* device_start, int length, int* device_result)
@@ -64,28 +61,29 @@ void exclusive_scan(int* device_start, int length, int* device_result)
      * both the input and the output arrays are sized to accommodate the next
      * power of 2 larger than the input.
      */
-    debug();
+    //debug();
     int N = length;
-    printf("%d", N);
-    
+    int numThreads = 0;
+    int numBlocks = 0;
+    //const int blocks = (N + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
     cudaMemcpy(device_result, device_start, N*sizeof(int), cudaMemcpyDeviceToDevice);
 
-    /**for (int x = 0; x < length; x++) {
-      printf("%d\n", device_start[x]);
-    }**/
-    
     for (int twod = 1; twod < N; twod*=2) {
       int twod1 = twod*2;
-      upSweep<<<1, N>>>(device_start, length, device_result, twod, twod1);
+      numThreads = N;
+      numBlocks = (numThreads + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
+      upSweep<<<numBlocks, THREADS_PER_BLOCK>>>(device_start, length, device_result, twod, twod1);
     }
 
-    int* zero = 0;
-    cudaMemcpy(device_result+(N-1), zero, sizeof(int), cudaMemcpyHostToDevice);
+    int zero = 0;
+    cudaMemcpy(device_result+(N-1), &zero, sizeof(int), cudaMemcpyHostToDevice);
     // downsweep phase.
     for (int twod = N/2; twod >= 1; twod /= 2)
     {
       int twod1 = twod*2;
-      downSweep<<<1, N>>>(device_start, length, device_result, twod, twod1);
+      numThreads = N;
+      numBlocks = (numThreads + THREADS_PER_BLOCK - 1)/ THREADS_PER_BLOCK;
+      downSweep<<<numBlocks, THREADS_PER_BLOCK>>>(device_start, length, device_result, twod, twod1);
     }
 }
 
