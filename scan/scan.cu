@@ -70,7 +70,8 @@ void exclusive_scan(int* device_start, int length, int* device_result)
      */
     //debug();
     int N = nextPow2(length);
-    printf("length: %d\n", N);
+    //--kf
+    //printf("length: %d\n", N);
     int numThreads = 0;
     int numBlocks = 0;
     //const int blocks = (N + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
@@ -126,11 +127,11 @@ double cudaScan(int* inarray, int* end, int* resultarray)
     double startTime = CycleTimer::currentSeconds();
     
     // --kf
-    for (int x = 0; x < rounded_length; x++) {
+    /*for (int x = 0; x < rounded_length; x++) {
       printf("%d ", inarray[x]);
     }
 
-    printf("\n");
+    printf("\n");*/
 
     exclusive_scan(device_input, end - inarray, device_result);
     
@@ -142,12 +143,12 @@ double cudaScan(int* inarray, int* end, int* resultarray)
     
     cudaMemcpy(resultarray, device_result, (end - inarray) * sizeof(int),
                cudaMemcpyDeviceToHost);
-    
+   /* 
     for (int y = 0; y < rounded_length; y++) {
       printf("%d ", resultarray[y]);
     }
     
-    printf("\n----------------------------\n");
+    printf("\n----------------------------\n");*/
     return overallDuration;
 }
 
