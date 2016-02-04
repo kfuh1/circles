@@ -182,12 +182,28 @@ double cudaScanThrust(int* inarray, int* end, int* resultarray) {
     return overallDuration;
 }
 
-__global__ findIndices() {
-  
+__global__ void findIndices(int* input, int* output, int length) {
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (index < length - 1) {
+    if (input[index] == input[index + 1]) {
+      output[index] = 1;
+    } else {
+      output[index] = 0;
+    }
+  } else if (index == length - 1) {
+    output[index] = 0;
+  }
 }
 
-__global__ setIndices() {
-  
+__global__ void setIndices(int* dup_indices, int* indices, int* result, int length) {
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (index < length - 1) {
+    if (dup_indices[index] == 1) {
+      result[indices[index]] = index;
+    }
+  }
 }
 
 int find_repeats(int *device_input, int length, int *device_output) {
@@ -202,15 +218,33 @@ int find_repeats(int *device_input, int length, int *device_output) {
      * it requires that. However, you must ensure that the results of
      * find_repeats are correct given the original length.
      */
-    numThreads = N;
-    numBlocks = (numThreads + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
-    findIndices<<<numBlocks, THREADS_PER_BLOCK>>>()
+    int numThreads = length;
+    int numBlocks = (numThreads + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
+    int rounded_length = nextPow2(length);
+
+    int* dup_indices;
+    int* indices;
+    int* total_repeats_ptr;
     
+    int total_repeats;
+  
+    cudaMalloc((void **)&dup_indices, sizeof(int) * rounded_length);
+    cudaMalloc((void **)&indices, sizeof(int) * rounded_length);
+    total_repeats_ptr = (int*)malloc(sizeof(int));
+    
+    //MEMSET HERE IF NEEDED!
 
+    findIndices<<<numBlocks, THREADS_PER_BLOCK>>>(device_input, dup_indices, length);
+    
+    exclusive_scan(dup_indices, length, indices);
+    cudaMemcpy(total_repeats_ptr, indices+(length-1), sizeof(int), cudaMemcpyDeviceToHost);
 
-      
-    setIndices<<<numBlocks, THREADS_PER_BLOCK>>>()
-    return 0;
+    setIndices<<<numBlocks, THREADS_PER_BLOCK>>>(dup_indices, indices, device_output, length);
+    
+    total_repeats = *total_repeats_ptr; 
+    free(total_repeats_ptr);
+    
+    return total_repeats;
 }
 
 /* Timing wrapper around find_repeats. You should not modify this function.
