@@ -1,0 +1,25 @@
+Rendering to 768x768 image
+Loaded scene with 25 circles
+Loaded scene with 25 circles
+---------------------------------------------------------
+Initializing CUDA for CudaRenderer
+Found 2 CUDA devices
+Device 0: GeForce GTX 480
+   SMs:        15
+   Global mem: 1536 MB
+   CUDA Cap:   2.0
+Device 1: Quadro FX 580
+   SMs:        4
+   Global mem: 511 MB
+   CUDA Cap:   1.1
+---------------------------------------------------------
+
+Running benchmark, 1 frames, beginning at frame 0 ...
+before kernelafter kernelCopying image data from device
+Mismatch detected at pixel [0][304], value = 1.000000, expected 0.718819 for color Red
+Mismatch detected at pixel [0][305], value = 1.000000, expected 0.718819 for color Red
+Mismatch detected at pixel [0][306], value = 1.000000, expected 0.718819 for color Red
+Mismatch detected at pixel [0][307], value = 1.000000, expected 0.718819 for color Red
+Mismatch detected at pixel [0][308], value = 1.000000, expected 0.718819 for color Red
+Mismatch detected at pixel [0][309], value = 1.000000, expected 0.718819 for color Red
+ERROR : Mismatch detected between reference and actual

@@ -377,6 +377,9 @@ RefRenderer::render() {
         int screenMaxX = CLAMP(static_cast<int>(maxX * image->width)+1, 0, image->width);
         int screenMinY = CLAMP(static_cast<int>(minY * image->height), 0, image->height);
         int screenMaxY = CLAMP(static_cast<int>(maxY * image->height)+1, 0, image->height);
+        
+        //printf("width: %d\n\n\n\n", image->width);
+        //printf("height: %d\n\n\n", image->height);
 
         float invWidth = 1.f / image->width;
         float invHeight = 1.f / image->height;
