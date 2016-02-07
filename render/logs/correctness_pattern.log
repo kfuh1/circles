@@ -17,9 +17,9 @@ Device 1: Quadro FX 580
 Running benchmark, 1 frames, beginning at frame 0 ...
 Copying image data from device
 ***************** Correctness check passed **************************
-Clear:    0.1072 ms
-Advance:  0.0009 ms
-Render:   47.1028 ms
-Total:    47.2109 ms
+Clear:    0.1083 ms
+Advance:  0.0010 ms
+Render:   7.0347 ms
+Total:    7.1440 ms
 
-Overall:  0.0680 sec (note units are seconds)
+Overall:  0.0290 sec (note units are seconds)

@@ -16,10 +16,10 @@ Device 1: Quadro FX 580
 
 Running benchmark, 1 frames, beginning at frame 0 ...
 Copying image data from device
-***************** Correctness check passed **************************
-Clear:    0.1041 ms
-Advance:  0.0115 ms
-Render:   1.6956 ms
-Total:    1.8112 ms
-
-Overall:  0.0472 sec (note units are seconds)
+Mismatch detected at pixel [8][359], value = 0.965918, expected 0.848819 for color Green
+Mismatch detected at pixel [8][359], value = 0.965405, expected 0.725225 for color Blue
+Mismatch detected at pixel [8][360], value = 0.965918, expected 0.848819 for color Green
+Mismatch detected at pixel [8][360], value = 0.965405, expected 0.725225 for color Blue
+Mismatch detected at pixel [8][361], value = 0.965918, expected 0.848819 for color Green
+Mismatch detected at pixel [8][361], value = 0.965405, expected 0.725225 for color Blue
+ERROR : Mismatch detected between reference and actual

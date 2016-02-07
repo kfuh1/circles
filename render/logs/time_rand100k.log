@@ -14,9 +14,9 @@ Device 1: Quadro FX 580
 ---------------------------------------------------------
 
 Running benchmark, 4 frames, beginning at frame 0 ...
-Clear:    0.0703 ms
-Advance:  0.0008 ms
-Render:   116.8855 ms
-Total:    116.9566 ms
+Clear:    0.0741 ms
+Advance:  0.0010 ms
+Render:   116.5857 ms
+Total:    116.6608 ms
 
-Overall:  0.4679 sec (note units are seconds)
+Overall:  0.4667 sec (note units are seconds)
