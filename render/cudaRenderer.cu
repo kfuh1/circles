@@ -384,14 +384,14 @@ __global__ void kernelRenderCircles() {
   
   //printf("in the kernel");
 
-  short index = blockIdx.x * blockDim.x + threadIdx.x;
-  short pixelY = index / cuConstRendererParams.imageWidth;
-  short pixelX = index % cuConstRendererParams.imageWidth;
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  int pixelY = index / cuConstRendererParams.imageWidth;
+  int pixelX = index % cuConstRendererParams.imageWidth;
   
   //printf("x: %d, y: %d\n", pixelX, pixelY);
 
   // pixelCnt SHORT OR INT?!? 
-  short pixelCnt = cuConstRendererParams.imageWidth * cuConstRendererParams.imageHeight;
+  int pixelCnt = cuConstRendererParams.imageWidth * cuConstRendererParams.imageHeight;
 
   if (index >= pixelCnt) {
     return;
@@ -719,7 +719,7 @@ CudaRenderer::render() {
 
     cudaThreadSynchronize();**/
     
-    short numPixels = image->width * image->height;
+    int numPixels = image->width * image->height;
 
     //printf("width: %hd, height: %hd\n", image->width, image->height);
     //printf("area: %d\n", numPixels);

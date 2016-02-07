@@ -15,11 +15,11 @@ Device 1: Quadro FX 580
 ---------------------------------------------------------
 
 Running benchmark, 1 frames, beginning at frame 0 ...
-before kernelafter kernelCopying image data from device
-Mismatch detected at pixel [0][304], value = 1.000000, expected 0.718819 for color Red
-Mismatch detected at pixel [0][305], value = 1.000000, expected 0.718819 for color Red
-Mismatch detected at pixel [0][306], value = 1.000000, expected 0.718819 for color Red
-Mismatch detected at pixel [0][307], value = 1.000000, expected 0.718819 for color Red
-Mismatch detected at pixel [0][308], value = 1.000000, expected 0.718819 for color Red
-Mismatch detected at pixel [0][309], value = 1.000000, expected 0.718819 for color Red
-ERROR : Mismatch detected between reference and actual
+Copying image data from device
+***************** Correctness check passed **************************
+Clear:    0.1041 ms
+Advance:  0.0115 ms
+Render:   1.6956 ms
+Total:    1.8112 ms
+
+Overall:  0.0472 sec (note units are seconds)
