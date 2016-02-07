@@ -384,18 +384,18 @@ __global__ void kernelRenderCircles() {
   
   //printf("in the kernel");
 
-  int index = blockIdx.x * blockDim.x + threadIdx.x;
-  int pixelY = index / cuConstRendererParams.imageWidth;
-  int pixelX = index % cuConstRendererParams.imageWidth;
+  short index = blockIdx.x * blockDim.x + threadIdx.x;
+  short pixelY = index / cuConstRendererParams.imageWidth;
+  short pixelX = index % cuConstRendererParams.imageWidth;
   
   //printf("x: %d, y: %d\n", pixelX, pixelY);
 
   // pixelCnt SHORT OR INT?!? 
-  int pixelCnt = cuConstRendererParams.imageWidth * cuConstRendererParams.imageHeight;
+  short pixelCnt = cuConstRendererParams.imageWidth * cuConstRendererParams.imageHeight;
 
-  /**if (index >= pixelCnt) {
+  if (index >= pixelCnt) {
     return;
-  }**/
+  }
   
   for (int circleIndex = 0; circleIndex<cuConstRendererParams.numCircles; circleIndex++) {
     //printf("Circle no. %d\n", circleIndex);
@@ -424,13 +424,13 @@ __global__ void kernelRenderCircles() {
 
     // Check if pixel is in within that circle's bounding box
 
-    //if (pixelY >= screenMinY && pixelY < screenMaxY && pixelX >= screenMinX && pixelX < screenMaxX) {
+    if (pixelY >= screenMinY && pixelY < screenMaxY && pixelX >= screenMinX && pixelX < screenMaxX) {
       float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (pixelY * imageWidth + screenMinX)]);
+      imgPtr = imgPtr + (pixelX - screenMinX);
       float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(pixelX) + 0.5f),
                                                            invHeight * (static_cast<float>(pixelY) + 0.5f));
-
       shadePixel(circleIndex, pixelCenterNorm, p, imgPtr);
-   // }
+    }
   }
 
 }
@@ -719,7 +719,7 @@ CudaRenderer::render() {
 
     cudaThreadSynchronize();**/
     
-    int numPixels = image->width * image->height;
+    short numPixels = image->width * image->height;
 
     //printf("width: %hd, height: %hd\n", image->width, image->height);
     //printf("area: %d\n", numPixels);
