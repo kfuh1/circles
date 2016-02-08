@@ -483,11 +483,62 @@ __global__ void kernelMarkCircles(int* circleIndicator) {
   }
 }
 
-__global__ void kernelRenderPixelsTwo(int* circleIndicator, int* circleCounts) {
-  int index = blockIdx.x + blockDim.x + threadIdx.x;
+__global__ void kernelRenderPixelsTwo(int* circleIndicator, int* circleCount) {
   
-  int imageWidth = cuConstRendererParams.imageWidth;
-  int imageHeight = cuConstRendererParams.imageHeight;
+  //printf("in the kernel");
+
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    int pixelY = index / cuConstRendererParams.imageWidth;
+    int pixelX = index % cuConstRendererParams.imageWidth;
+          
+          //printf("x: %d, y: %d\n", pixelX, pixelY);
+
+          // pixelCnt SHORT OR INT?!? 
+    int pixelCnt = cuConstRendererParams.imageWidth * cuConstRendererParams.imageHeight;
+
+    if (index >= pixelCnt) {
+      return;
+    }
+    
+    int count = 0; 
+    for (int circleIndex = 0; circleIndex<cuConstRendererParams.numCircles; circleIndex++) {
+    //printf("Circle no. %d\n", circleIndex);
+      if (count >= circleCount[index]) {
+        return;
+      } else {    
+        int circleIndex3 = 3 * circleIndex;
+        float3 p = *(float3*)(&cuConstRendererParams.position[circleIndex3]);
+        float rad = cuConstRendererParams.radius[circleIndex];
+              
+        // compute the bounding box of the circle. The bound is in integer
+        // screen coordinates, so it's clamped to the edges of the screen.
+        short imageWidth = cuConstRendererParams.imageWidth;
+        short imageHeight = cuConstRendererParams.imageHeight;
+        short minX = static_cast<short>(imageWidth * (p.x - rad));
+              
+        // a bunch of clamps.  Is there a CUDA built-in for this?
+        short screenMinX = (minX > 0) ? ((minX < imageWidth) ? minX : imageWidth) : 0;
+              
+        float invWidth = 1.f / imageWidth;
+        float invHeight = 1.f / imageHeight;
+              
+        // Check if pixel is in within that circle's bounding box
+        
+        if (circleIndicator[index * cuConstRendererParams.numCircles + circleIndex] == 1) {    
+          float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (pixelY * imageWidth + screenMinX)]);
+          imgPtr = imgPtr + (pixelX - screenMinX);
+          float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(pixelX) + 0.5f),
+                                                                                       invHeight * (static_cast<float>(pixelY) + 0.5f));
+          shadePixel(circleIndex, pixelCenterNorm, p, imgPtr);
+          count++;
+        }
+      }
+    }
+  
+  /**int index = blockIdx.x + blockDim.x + threadIdx.x;
+  
+  short imageWidth = cuConstRendererParams.imageWidth;
+  short imageHeight = cuConstRendererParams.imageHeight;
   int numCircles = cuConstRendererParams.numCircles;
   int numPixels = imageWidth * imageHeight;
   
@@ -518,12 +569,12 @@ __global__ void kernelRenderPixelsTwo(int* circleIndicator, int* circleCounts) {
         float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (pixelY * imageWidth + screenMinX)]);
         float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(pixelX) + 0.5f),
                                                            invHeight * (static_cast<float>(pixelY) + 0.5f));
-        imgPtr += pixelX - screenMinX;
+        imgPtr = imgPtr + (pixelX - screenMinX);
         shadePixel(circleIndex, pixelCenterNorm, p, imgPtr);
         //count++;
       //}
    // }
-  }
+  }**/
 }
 
 
@@ -786,7 +837,8 @@ CudaRenderer::render() {
 
     numBlocks = ((numPixels + numThreads - 1) / numThreads);
     kernelRenderPixelsTwo<<<numBlocks, numThreads>>>(circleIndicator, circleCounts);
-      
+    //kernelRenderPixelsTwo<<<numBlocks, numThreads>>>();
+
     cudaThreadSynchronize();
 
     //cudaFree(circleIndicator);
