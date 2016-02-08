@@ -453,7 +453,7 @@ __global__ void kernelMarkCircles(int* circleIndicator) {
   int circleIndex3 = 3 * index;
   int numCircles = cuConstRendererParams.numCircles;
 
-  if (index > numCircles) {
+  if (index >= numCircles) {
     return;
   } 
 
@@ -478,7 +478,7 @@ __global__ void kernelMarkCircles(int* circleIndicator) {
 
   for (int pixelY=screenMinY; pixelY<screenMaxY; pixelY++) {
     for (int pixelX=screenMinX; pixelX<screenMaxX; pixelX++) {
-      circleIndicator[(pixelY * imageWidth + screenMinX) * numCircles + index] = 1;
+      circleIndicator[(pixelY * imageWidth + pixelX) * numCircles + index] = 1;
     }
   }
 }
@@ -492,21 +492,21 @@ __global__ void kernelRenderPixelsTwo(int* circleIndicator, int* circleCounts) {
   int numPixels = imageWidth * imageHeight;
   
   int pixelY = index / imageWidth;
-  int pixelX =index % imageWidth;
+  int pixelX = index % imageWidth;
 
-  if (index > numPixels) {
+  if (index >= numPixels) {
     return;
   }
 
   int count = 0;
   for (int circleIndex = 0; circleIndex < numCircles; circleIndex++) {
-    if (count > circleCounts[index]) {
-      return;
-    } else {
+    //if (count >= circleCounts[index]) {
+      //return;
+    //} else {
       int circleIndex3 = 3 * circleIndex;
 
       float3 p = *(float3*)(&cuConstRendererParams.position[circleIndex3]);
-      float  rad = cuConstRendererParams.radius[index];
+      float  rad = cuConstRendererParams.radius[circleIndex];
 
       short minX = static_cast<short>(imageWidth * (p.x - rad));
       short screenMinX = (minX > 0) ? ((minX < imageWidth) ? minX : imageWidth) : 0;
@@ -514,15 +514,15 @@ __global__ void kernelRenderPixelsTwo(int* circleIndicator, int* circleCounts) {
       float invWidth = 1.f / imageWidth;
       float invHeight = 1.f / imageHeight;
 
-      if (circleIndicator[index * numCircles + circleIndex] == 1) {
+      //if (circleIndicator[index * numCircles + circleIndex] == 1) {
         float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (pixelY * imageWidth + screenMinX)]);
         float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(pixelX) + 0.5f),
                                                            invHeight * (static_cast<float>(pixelY) + 0.5f));
         imgPtr += pixelX - screenMinX;
         shadePixel(circleIndex, pixelCenterNorm, p, imgPtr);
-        count++;
-      }
-    }
+        //count++;
+      //}
+   // }
   }
 }
 
@@ -759,35 +759,39 @@ CudaRenderer::render() {
     int* circleIndicator;
     int numPixels;
     numPixels = image->width * image->height;
-
+    
+    int* circleIndicatorHost;
+    circleIndicatorHost = (int *)malloc(sizeof(int) * numPixels * numCircles);
+    memset(circleIndicatorHost, 0, sizeof(int) * numPixels * numCircles);
     cudaMalloc(&circleIndicator, sizeof(int) * numPixels * numCircles);
+    cudaMemcpy(circleIndicator, circleIndicatorHost, sizeof(int) * numCircles * numPixels, cudaMemcpyHostToDevice);
 
     int numThreads = 256;
     int numBlocks = ((numCircles + numThreads - 1) / numThreads);
     kernelMarkCircles<<<numBlocks, numThreads>>>(circleIndicator);
     
-    cudaThreadSynchornize();
+    cudaThreadSynchronize();
 
     int* circleCounts;
     int* circIndCpy;
-    int* circleIndicatorHost;
-    circleIndicatorHost = (int *)malloc(sizeof(int) * numPixels * numCircles);
+    cudaMemcpy(circleIndicatorHost, circleIndicator, sizeof(int) * numPixels * numCircles, cudaMemcpyDeviceToHost);
 
     cudaMalloc(&circleCounts, sizeof(int) * numPixels);
     for (int pixelIndex = 0; pixelIndex < numPixels; pixelIndex++) {
       circIndCpy = (int* )malloc(sizeof(int) * numCircles);
       thrust::inclusive_scan(circleIndicatorHost + (pixelIndex * numCircles), circleIndicatorHost + (pixelIndex * numCircles) + numCircles, circIndCpy);
+      //printf("%d ", *(circIndCpy + numCircles - 1));
       cudaMemcpy(circleCounts + pixelIndex, circIndCpy + numCircles - 1, sizeof(int), cudaMemcpyHostToDevice);
     }
-    
+
     numBlocks = ((numPixels + numThreads - 1) / numThreads);
     kernelRenderPixelsTwo<<<numBlocks, numThreads>>>(circleIndicator, circleCounts);
-    
+      
     cudaThreadSynchronize();
 
-    cudaFree(circleIndicator);
-    free(circleIndicatorHost);
-    free(circIndCpy);
+    //cudaFree(circleIndicator);
+    //free(circleIndicatorHost);
+    //free(circIndCpy);
 
     /**dim3 blockDim(256, 1);
     int numPixels;
