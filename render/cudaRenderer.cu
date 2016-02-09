@@ -450,7 +450,7 @@ __global__ void kernelRenderPixels(short minX, short maxX, short minY, short Max
     shadePixel(cIdx, pixelCenterNorm, p, imgPtr);
 }
 
-__global__ void kernelMarkCircles(int* circleIndicator, int regionWH) {
+__global__ void kernelMarkCircles(int* circleIndicator, int regionWH, int roundedNumCircles) {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
 
   int circleIndex3 = 3 * index;
@@ -499,10 +499,11 @@ __global__ void kernelMarkCircles(int* circleIndicator, int regionWH) {
        || (screenMinX >= xLeft && screenMinX < xRight && screenMaxY >= yTop && screenMaxY < yBot)
        || (screenMaxX >= xLeft && screenMaxX < xRight && screenMinY >= yTop && screenMinY < yBot)
        || (screenMaxX >= xLeft && screenMaxX < xRight && screenMaxY >= yTop && screenMaxY < yBot)) {
-        circleIndicator[regionIndex * numCircles + index] = 1; 
+        circleIndicator[regionIndex * roundedNumCircles + index] = 1;
       } else {
-        circleIndicator[regionIndex * numCircles + index] = 0;
+        circleIndicator[regionIndex * roundedNumCircles + index] = 0;
       }
+      //circleIndicator[regionIndex * roundedNumCircles + index] = 1;
       regionIndex++;
     }
   }
@@ -533,14 +534,14 @@ __global__ void kernelLoadScan(int* circleIndicator, int* circleLists, int numRe
   int totalCnt = output[roundedNumCircles-1];
 
   // Make compressed list of circles
-  for (int i = 0; i < roundedNumCircles; i++) {
+  for (int i = 0; i < cuConstRendererParams.numCircles; i++) {
     if (circleIndicator[index * roundedNumCircles + i] == 1) {
       circleLists[index * roundedNumCircles + output[i]] = i;
     }
   }
 
-  if (totalCnt + 1 < roundedNumCircles) {
-    circleLists[index * roundedNumCircles + totalCnt + 1] = -1;
+  if (totalCnt < roundedNumCircles) {
+    circleLists[index * roundedNumCircles + totalCnt] = -1;
   }
 }
 
@@ -570,12 +571,15 @@ __global__ void kernelRenderPixelsThree(int* circleLists, int regionWH, int roun
   float invWidth = 1.f / imageWidth;
   float invHeight = 1.f / imageHeight;
 
-  int circleIndex = 0;
-  while (circleLists[regionNum * roundedNumCircles + circleIndex] != -1 && circleIndex < cuConstRendererParams.numCircles) {
+  int iter = 0;
+  int circleIndex;
+  while (circleLists[regionNum * roundedNumCircles + iter] != -1 && circleIndex < cuConstRendererParams.numCircles) {
+    
+    circleIndex = circleLists[regionNum * roundedNumCircles + iter];
     int index3 = circleIndex * 3;
-
+    
     float3 p = *(float3*)(&cuConstRendererParams.position[index3]);
-    float  rad = cuConstRendererParams.radius[index];
+    float  rad = cuConstRendererParams.radius[circleIndex];
 
     short minX = static_cast<short>(imageWidth * (p.x - rad));
     short maxX = static_cast<short>(imageWidth * (p.x + rad)) + 1;
@@ -597,7 +601,7 @@ __global__ void kernelRenderPixelsThree(int* circleLists, int regionWH, int roun
       shadePixel(circleIndex, pixelCenterNorm, p, imgPtr);
     }
 
-    circleIndex++;
+    iter++;
   }
 
 }
@@ -954,7 +958,7 @@ CudaRenderer::render() {
     int numRegionsDown = (image->height + regionWH - 1) / regionWH;
     int numRegions = numRegionsAcross * numRegionsDown;
 
-    int* circleIndicatorHost;
+    //int* circleIndicatorHost;
     //circleIndicatorHost = (int *)malloc(sizeof(int) * numRegions * numCircles);
     //memset(circleIndicatorHost, 0, sizeof(int) * numRegions * numCircles);
     cudaMalloc(&circleIndicator, sizeof(int) * numRegions * roundedNumCircles);
@@ -963,7 +967,7 @@ CudaRenderer::render() {
 
     int numThreads = 256;
     int numBlocks = ((roundedNumCircles + numThreads - 1) / numThreads);
-    kernelMarkCircles<<<numBlocks, numThreads>>>(circleIndicator, regionWH);
+    kernelMarkCircles<<<numBlocks, numThreads>>>(circleIndicator, regionWH, roundedNumCircles);
     
     cudaThreadSynchronize();
 
@@ -983,7 +987,7 @@ CudaRenderer::render() {
     cudaMalloc(&circleLists, sizeof(int) * numRegions * roundedNumCircles);
     cudaMemset(&circleLists, 0, sizeof(int) * numRegions * roundedNumCircles);
 
-    numBlocks = ((numRegions + numThreads -1) / numThreads);
+    numBlocks = ((numRegions + numThreads - 1) / numThreads);
     kernelLoadScan<<<numBlocks, numThreads>>>(circleIndicator, circleLists, numRegions, roundedNumCircles);
 
     //SOME STUFF
