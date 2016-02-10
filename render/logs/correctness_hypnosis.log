@@ -8,18 +8,18 @@ Device 0: GeForce GTX 480
    SMs:        15
    Global mem: 1536 MB
    CUDA Cap:   2.0
-Device 1: Quadro FX 580
-   SMs:        4
-   Global mem: 511 MB
+Device 1: Quadro NVS 295
+   SMs:        1
+   Global mem: 255 MB
    CUDA Cap:   1.1
 ---------------------------------------------------------
 
 Running benchmark, 1 frames, beginning at frame 0 ...
 Copying image data from device
-Mismatch detected at pixel [8][359], value = 0.965918, expected 0.848819 for color Green
-Mismatch detected at pixel [8][359], value = 0.965405, expected 0.725225 for color Blue
-Mismatch detected at pixel [8][360], value = 0.965918, expected 0.848819 for color Green
-Mismatch detected at pixel [8][360], value = 0.965405, expected 0.725225 for color Blue
-Mismatch detected at pixel [8][361], value = 0.965918, expected 0.848819 for color Green
-Mismatch detected at pixel [8][361], value = 0.965405, expected 0.725225 for color Blue
-ERROR : Mismatch detected between reference and actual
+***************** Correctness check passed **************************
+Clear:    0.1317 ms
+Advance:  0.0674 ms
+Render:   2.4942 ms
+Total:    2.6932 ms
+
+Overall:  0.0448 sec (note units are seconds)

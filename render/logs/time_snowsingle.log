@@ -8,16 +8,16 @@ Device 0: GeForce GTX 480
    SMs:        15
    Global mem: 1536 MB
    CUDA Cap:   2.0
-Device 1: Quadro FX 580
-   SMs:        4
-   Global mem: 511 MB
+Device 1: Quadro NVS 295
+   SMs:        1
+   Global mem: 255 MB
    CUDA Cap:   1.1
 ---------------------------------------------------------
 
 Running benchmark, 4 frames, beginning at frame 0 ...
-Clear:    0.0709 ms
-Advance:  0.0008 ms
-Render:   49.7913 ms
-Total:    49.8630 ms
+Clear:    0.0966 ms
+Advance:  0.0011 ms
+Render:   50.4045 ms
+Total:    50.5022 ms
 
-Overall:  0.1995 sec (note units are seconds)
+Overall:  0.2021 sec (note units are seconds)

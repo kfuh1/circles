@@ -499,12 +499,12 @@ __global__ void kernelMarkCircles(int* circleIndicator, int regionWH) {
        || (screenMinX >= xLeft && screenMinX < xRight && screenMaxY >= yTop && screenMaxY < yBot)
        || (screenMaxX >= xLeft && screenMaxX < xRight && screenMinY >= yTop && screenMinY < yBot)
        || (screenMaxX >= xLeft && screenMaxX < xRight && screenMaxY >= yTop && screenMaxY < yBot)) {
-        circleIndicator[regionIndex * numCircles + index] = 1;
-      } else {
         circleIndicator[regionIndex * numCircles + index] = 0;
+      } else {
+        circleIndicator[regionIndex * numCircles + index] = 1;
       }**/
       circleIndicator[regionIndex * numCircles + index] = circleInBoxConservative(p.x * imageWidth, p.y * imageHeight,
-		      imageHeight * rad, xLeft, xRight, yBot, yTop);
+		     imageHeight * rad, xLeft, xRight, yBot, yTop);
       regionIndex++;
     }
     //__syncthreads();
@@ -840,7 +840,7 @@ CudaRenderer::render() {
     numPixels = image->width * image->height;
 //    int roundedNumCircles = nextPow2(numCircles);
 
-    int regionWH = 32;
+    int regionWH = 250;
     int numRegionsAcross = (image->width + regionWH - 1) / regionWH;
     int numRegionsDown = (image->height + regionWH - 1) / regionWH;
     int numRegions = numRegionsAcross * numRegionsDown;
@@ -848,10 +848,7 @@ CudaRenderer::render() {
     cudaMalloc(&circleIndicator, sizeof(int) * numRegions * numCircles);
     cudaMemset(circleIndicator, 0, sizeof(int) * numRegions * numCircles);
     
-    int* circleIndHost = (int *) malloc(sizeof(int) * numRegions * numCircles);
-
-
-    int numThreads = 256;
+    int numThreads = 512 - 2*32;
     int numBlocks = ((numCircles + numThreads - 1) / numThreads);
     kernelMarkCircles<<<numBlocks, numThreads>>>(circleIndicator, regionWH);
     
@@ -894,5 +891,7 @@ CudaRenderer::render() {
 
     cudaThreadSynchronize();
 
-
+    cudaFree(circleIndicator);
+    cudaFree(circleLists);
+    cudaFree(listLengths);
 }
