@@ -15,11 +15,11 @@ Device 1: Quadro NVS 295
 ---------------------------------------------------------
 
 Running benchmark, 1 frames, beginning at frame 0 ...
-Copying image data from device
+X: 40122736, Y: 5 jkdjfkdshkjfCopying image data from device
 ***************** Correctness check passed **************************
-Clear:    0.1075 ms
-Advance:  0.0011 ms
-Render:   108.5078 ms
-Total:    108.6165 ms
+Clear:    0.1041 ms
+Advance:  0.0010 ms
+Render:   82.6347 ms
+Total:    82.7399 ms
 
-Overall:  0.5060 sec (note units are seconds)
+Overall:  0.4787 sec (note units are seconds)

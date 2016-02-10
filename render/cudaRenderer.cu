@@ -507,7 +507,7 @@ __global__ void kernelMarkCircles(int* circleIndicator, int regionWH) {
 		     imageHeight * rad, xLeft, xRight, yBot, yTop);
       regionIndex++;
     }
-    //__syncthreads();
+    __syncthreads();
   }
 
 }
@@ -538,7 +538,7 @@ __global__ void kernelLoadScan(int* circleIndicator, int* circleLists, int numRe
   listLengths[index] = scanTemp[numCircles - 1];
 }
 
-__global__ void kernelRenderPixelsThree(int* circleLists, int regionWH, int* listLengths) {
+__global__ void kernelRenderPixelsThree(int* circleLists, int regionWH, int* listLengths, int* check, int* checkTwo) {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
   int numCircles = cuConstRendererParams.numCircles;
   int imageWidth = cuConstRendererParams.imageWidth;
@@ -559,6 +559,13 @@ __global__ void kernelRenderPixelsThree(int* circleLists, int regionWH, int* lis
   int regionY = pixelY / regionWH;
 
   int regionNum = (regionY * numRegionsAcross) + regionX;
+  
+  //printf("ejrhjkwehrkjwherjk");
+
+  //printf("index: %d\n, imageWidth: %d\n, numRegionsAcross: %d\n, pixelY: %d\n, pixelX: %d\n, numPixels: %d\n, regionX: %d\n, regionY: %d\n, regionNum: %d\n", index, imageWidth, numRegionsAcross, pixelY, pixelX, numPixels, regionX, regionY, regionNum);
+
+  check[0] = 4;
+  checkTwo[0] = 5;
 
   float invWidth = 1.f / imageWidth;
   float invHeight = 1.f / imageHeight;
@@ -840,15 +847,17 @@ CudaRenderer::render() {
     numPixels = image->width * image->height;
 //    int roundedNumCircles = nextPow2(numCircles);
 
-    int regionWH = 250;
+    int regionWH = 200;
     int numRegionsAcross = (image->width + regionWH - 1) / regionWH;
     int numRegionsDown = (image->height + regionWH - 1) / regionWH;
     int numRegions = numRegionsAcross * numRegionsDown;
+    
+    //printf("%d ", numRegions);
 
     cudaMalloc(&circleIndicator, sizeof(int) * numRegions * numCircles);
     cudaMemset(circleIndicator, 0, sizeof(int) * numRegions * numCircles);
     
-    int numThreads = 512 - 2*32;
+    int numThreads = 512 - 8*32;
     int numBlocks = ((numCircles + numThreads - 1) / numThreads);
     kernelMarkCircles<<<numBlocks, numThreads>>>(circleIndicator, regionWH);
     
@@ -886,9 +895,24 @@ CudaRenderer::render() {
     
     //SOME STUFF
 
-    numBlocks = ((numPixels + numThreads - 1) / numThreads);
-    kernelRenderPixelsThree<<<numBlocks, numThreads>>>(circleLists, regionWH, listLengths);
+    int* check;
+    int* checkTwo;
+    cudaMalloc(&check, sizeof(int));
+    cudaMalloc(&checkTwo, sizeof(int));
 
+    numBlocks = ((numPixels + numThreads - 1) / numThreads);
+    kernelRenderPixelsThree<<<numBlocks, numThreads>>>(circleLists, regionWH, listLengths, check, checkTwo);
+      
+    cudaDeviceSynchronize();
+     
+    int* copy;
+    int* copyTwo;
+    copy = (int*)malloc(sizeof(int));
+    copyTwo = (int*)malloc(sizeof(int));
+    cudaMemcpy(copy, check, sizeof(int), cudaMemcpyDeviceToHost); 
+    cudaMemcpy(copyTwo, checkTwo, sizeof(int), cudaMemcpyDeviceToHost);
+    printf("X: %d, Y: %d jkdjfkdshkjf", copy, copyTwo[0]);
+    
     cudaThreadSynchronize();
 
     cudaFree(circleIndicator);
