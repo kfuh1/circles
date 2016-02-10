@@ -34,7 +34,7 @@ static inline int nextPow2(int n)
 
 __global__ void upSweep(int* start, int length, int* result, int twod, int twod1) {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
-  
+  index *= twod1; 
   /**for (int x = 0; x < length; x++) {
     printf("Index: %d, Element: %d", x, result[x]);
   }
@@ -48,7 +48,7 @@ __global__ void upSweep(int* start, int length, int* result, int twod, int twod1
 
 __global__ void downSweep(int* start, int length, int* result, int twod, int twod1) {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
-
+  index *= twod1;
   if (index < length && (index % twod1) == 0) {
     //printf("Index: %d\n", index);
     int t = result[index+twod-1];
@@ -79,7 +79,8 @@ void exclusive_scan(int* device_start, int length, int* device_result)
 
     for (int twod = 1; twod < N; twod*=2) {
       int twod1 = twod*2;
-      numThreads = N;
+      //numThreads = N;
+      numThreads = N / twod1;
       numBlocks = (numThreads + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
       upSweep<<<numBlocks, THREADS_PER_BLOCK>>>(device_start, length, device_result, twod, twod1);
     }
@@ -90,8 +91,12 @@ void exclusive_scan(int* device_start, int length, int* device_result)
     for (int twod = N/2; twod >= 1; twod /= 2)
     {
       int twod1 = twod*2;
-      numThreads = N;
+      
+      numThreads = N / twod1;
+
+      //numThreads = N;
       numBlocks = (numThreads + THREADS_PER_BLOCK - 1)/ THREADS_PER_BLOCK;
+      
       downSweep<<<numBlocks, THREADS_PER_BLOCK>>>(device_start, length, device_result, twod, twod1);
     }
 }

@@ -1,0 +1,13 @@
+---------------------------------------------------------
+Found 2 CUDA devices
+Device 0: GeForce GTX 480
+   SMs:        15
+   Global mem: 1536 MB
+   CUDA Cap:   2.0
+Device 1: Quadro NVS 295
+   SMs:        1
+   Global mem: 255 MB
+   CUDA Cap:   1.1
+---------------------------------------------------------
+GPU_time: 0.369 ms
+Find_repeats outputs are correct!
