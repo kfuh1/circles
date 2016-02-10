@@ -826,6 +826,7 @@ CudaRenderer::render() {
     int numBlocks = ((numCircles + numThreads - 1) / numThreads);
     kernelMarkCircles<<<numBlocks, numThreads>>>(circleIndicator, regionWH);
     
+    // Device sync
     cudaDeviceSynchronize();
 
     int* circleLists;
