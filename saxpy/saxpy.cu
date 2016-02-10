@@ -60,7 +60,7 @@ saxpyCuda(int N, float alpha, float* xarray, float* yarray, float* resultarray) 
     
     double endKernelTime = CycleTimer::currentSeconds();
 
-    printf("Total time: %g\n", endKernelTime - startKernelTime);
+    printf("Total time: %.3f ms\n", 1000.f * (endKernelTime - startKernelTime));
 
     //
     // TODO copy result from GPU using cudaMemcpy

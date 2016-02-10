@@ -15,12 +15,12 @@ Device 1: Quadro NVS 295
 ---------------------------------------------------------
 
 Running benchmark, 1 frames, beginning at frame 0 ...
-X: 38840336, Y: 5 jkdjfkdshkjfCopying image data from device
+Copying image data from device
 Mismatch detected at pixel [617][136], value = 0.460812, expected 0.701270 for color Red
 ***************** Correctness check passed **************************
-Clear:    0.1074 ms
+Clear:    0.1082 ms
 Advance:  0.0010 ms
-Render:   296.6853 ms
-Total:    296.7937 ms
+Render:   225.0361 ms
+Total:    225.1454 ms
 
-Overall:  5.6985 sec (note units are seconds)
+Overall:  5.6852 sec (note units are seconds)
