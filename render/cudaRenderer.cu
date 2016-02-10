@@ -814,7 +814,7 @@ CudaRenderer::render() {
     int* circleIndicator;
     numPixels = image->width * image->height;
 
-    int regionWH = 96;
+    int regionWH = 64;
     int numRegionsAcross = (image->width + regionWH - 1) / regionWH;
     int numRegionsDown = (image->height + regionWH - 1) / regionWH;
     int numRegions = numRegionsAcross * numRegionsDown;
@@ -822,11 +822,11 @@ CudaRenderer::render() {
     cudaMalloc(&circleIndicator, sizeof(int) * numRegions * numCircles);
     cudaMemset(circleIndicator, 0, sizeof(int) * numRegions * numCircles);
     
-    int numThreads = 128;
+    int numThreads = 128 + 2*32;
     int numBlocks = ((numCircles + numThreads - 1) / numThreads);
     kernelMarkCircles<<<numBlocks, numThreads>>>(circleIndicator, regionWH);
     
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
 
     int* circleLists;
     cudaMalloc(&circleLists, sizeof(int) * numRegions * numCircles);
@@ -837,11 +837,11 @@ CudaRenderer::render() {
     numBlocks = ((numRegions + numThreads - 1) / numThreads);
     kernelLoadScan<<<numBlocks, numThreads>>>(circleIndicator, circleLists, numRegions, listLengths);
 
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
 
     numBlocks = ((numPixels + numThreads - 1) / numThreads);
     kernelRenderPixels<<<numBlocks, numThreads>>>(circleLists, regionWH, listLengths);
       
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
     }
 }

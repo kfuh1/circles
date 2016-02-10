@@ -17,9 +17,9 @@ Device 1: Quadro NVS 295
 Running benchmark, 1 frames, beginning at frame 0 ...
 Copying image data from device
 ***************** Correctness check passed **************************
-Clear:    0.1520 ms
-Advance:  0.1849 ms
-Render:   91.7263 ms
-Total:    92.0632 ms
+Clear:    0.1072 ms
+Advance:  0.1062 ms
+Render:   107.0965 ms
+Total:    107.3098 ms
 
-Overall:  0.1077 sec (note units are seconds)
+Overall:  0.1229 sec (note units are seconds)
