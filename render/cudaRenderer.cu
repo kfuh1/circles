@@ -432,11 +432,18 @@ __global__ void kernelMarkCircles(int* circleIndicator, int regionWH) {
 /* sequentially scan the arrays of 1s and 0s given by circleIndicator to
  * collapse the portions containing 0s */
 __global__ void kernelRenderRegions(int regionWH, int numRegions, int circleStart) {
+    __shared__ uint circleIndicator[1024];
+    __shared__ uint circleLists[1024];
+    __shared__ int length; 
+
+    memset(circleIndicator, 0, sizeof(int) * 1024);
+    memset(circleLists, 0, sizeof(int) * 1024);
+
     int numProcessedCircles = 1024;
     int t = threadIdx.x;
     //int regionIdx = blockIdx.x * blockDim.x + threadIdx.x;
-    short imageWidth = cuConstRendererParams.imageWidth;
-    short imageHeight = cuConstRendererParams.imageHeight;
+    int imageWidth = cuConstRendererParams.imageWidth;
+    int imageHeight = cuConstRendererParams.imageHeight;
 
     int numRegionsAcross = (imageWidth + regionWH - 1) / regionWH;
 
@@ -449,10 +456,7 @@ __global__ void kernelRenderRegions(int regionWH, int numRegions, int circleStar
     }
     int numCircles = cuConstRendererParams.numCircles;
     
-    __shared__ int circleIndicator[1024];
-    __shared__ int circleLists[1024];
 
-    __shared__ int length;
     int circleIdx = t + circleStart;
     if(circleIdx < numCircles) {
       int circleIdx3 = circleIdx * 3;
@@ -475,7 +479,15 @@ __global__ void kernelRenderRegions(int regionWH, int numRegions, int circleStar
     }
     
     __syncthreads();
-    
+    /*sharedMemExclusiveScan(t, circleIndicator, output, scratch, 1024);
+    if(t == 0){
+        for(int i = 0; i < numProcessedCircles; i++){
+            if(circleIndicator[i] == 1){
+                length++;
+                circleLists[output[i]] = i + circleStart;
+            }
+        }
+    }*/
     if(t == 0){
       length = 0;
         for(int i = circleStart; i < circleStart + numProcessedCircles; i++){
@@ -499,8 +511,9 @@ __global__ void kernelRenderRegions(int regionWH, int numRegions, int circleStar
     float invWidth = 1.f / imageWidth;
     float invHeight = 1.f / imageHeight;
     
-    if(pixelX >= imageWidth || pixelY >= imageHeight)
-        return; 
+    if(pixelX >= imageWidth || pixelY >= imageHeight){
+        return;
+    }
 
     int iter = 0;
     int circleIndex;
@@ -535,6 +548,7 @@ __global__ void kernelRenderRegions(int regionWH, int numRegions, int circleStar
              shadePixel(circleIndex, pixelCenterNorm, p, imgPtr);
          }
          iter++;
+
      }
 }
 /* rendering the pixels for each circle in the case with less than 5 
