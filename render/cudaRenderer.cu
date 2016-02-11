@@ -451,31 +451,33 @@ __global__ void kernelRenderRegions(int regionWH, int numRegions, int circleStar
     
     __shared__ int circleIndicator[1024];
     __shared__ int circleLists[1024];
+
+    __shared__ int length;
     int circleIdx = t + circleStart;
-    if(circleIdx >= numCircles)
-        return;
-    int circleIdx3 = circleIdx * 3;
-    float3 p = *(float3*)(&cuConstRendererParams.position[circleIdx3]);
-    float  rad = cuConstRendererParams.radius[circleIdx];
+    if(circleIdx < numCircles) {
+      int circleIdx3 = circleIdx * 3;
+      float3 p = *(float3*)(&cuConstRendererParams.position[circleIdx3]);
+      float  rad = cuConstRendererParams.radius[circleIdx];
     
-    short yTop = regionY * regionWH; 
-    short yBot = yTop + regionWH;
-    if (yBot > imageHeight) {
+      short yTop = regionY * regionWH; 
+      short yBot = yTop + regionWH;
+      if (yBot > imageHeight) {
         yBot = imageHeight;
-    }
-    short xLeft = regionX * regionWH;
-    short xRight = xLeft + regionWH;
-    if (xRight > imageWidth) {
-        xRight = imageWidth;
-    }
-    circleIndicator[circleIdx % numProcessedCircles] = 
+      }
+      short xLeft = regionX * regionWH;
+      short xRight = xLeft + regionWH;
+      if (xRight > imageWidth) {
+          xRight = imageWidth;
+      }
+      circleIndicator[circleIdx % numProcessedCircles] = 
             circleInBoxConservative(p.x * imageWidth, p.y * imageHeight,
             imageHeight * rad, xLeft, xRight, yBot, yTop);
+    }
     
     __syncthreads();
     
-    int length = 0;
     if(t == 0){
+      length = 0;
         for(int i = circleStart; i < circleStart + numProcessedCircles; i++){
           if(circleIndicator[i % numProcessedCircles] == 1){
               circleLists[length] = i;
@@ -483,6 +485,9 @@ __global__ void kernelRenderRegions(int regionWH, int numRegions, int circleStar
           }
         }
     }
+
+    __syncthreads();
+
     int x = t % regionWH;
     int y = t / regionWH;
 
@@ -494,7 +499,7 @@ __global__ void kernelRenderRegions(int regionWH, int numRegions, int circleStar
     float invWidth = 1.f / imageWidth;
     float invHeight = 1.f / imageHeight;
     
-    if(pixelX > imageWidth || pixelY > imageHeight)
+    if(pixelX >= imageWidth || pixelY >= imageHeight)
         return; 
 
     int iter = 0;
