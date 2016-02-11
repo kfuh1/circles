@@ -16,10 +16,10 @@ Device 1: Quadro NVS 295
 
 Running benchmark, 1 frames, beginning at frame 0 ...
 Copying image data from device
-***************** Correctness check passed **************************
-Clear:    0.1185 ms
-Advance:  0.0011 ms
-Render:   352.1575 ms
-Total:    352.2771 ms
-
-Overall:  4.0699 sec (note units are seconds)
+Mismatch detected at pixel [0][0], value = 1.000000, expected 0.842340 for color Red
+Mismatch detected at pixel [0][0], value = 1.000000, expected 0.597569 for color Green
+Mismatch detected at pixel [0][0], value = 1.000000, expected 0.323406 for color Blue
+Mismatch detected at pixel [0][1], value = 1.000000, expected 0.842340 for color Red
+Mismatch detected at pixel [0][1], value = 1.000000, expected 0.597569 for color Green
+Mismatch detected at pixel [0][1], value = 1.000000, expected 0.323406 for color Blue
+ERROR : Mismatch detected between reference and actual
