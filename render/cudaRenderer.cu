@@ -464,8 +464,9 @@ __global__ void kernelRenderPixelsSmall(short minX, short maxX, short minY,
     short imageHeight = cuConstRendererParams.imageHeight;
     float invWidth = 1.f / imageWidth;
     float invHeight = 1.f / imageHeight;
-    if(index >= n)
+    if(index >= n) {
         return;
+    }
     float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (pixelY * imageWidth + minX)]);
     float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(pixelX) + 0.5f),
 		                         invHeight * (static_cast<float>(pixelY) + 0.5f));
