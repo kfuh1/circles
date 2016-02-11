@@ -14,9 +14,9 @@ Device 1: Quadro NVS 295
 ---------------------------------------------------------
 
 Running benchmark, 4 frames, beginning at frame 0 ...
-Clear:    0.0695 ms
-Advance:  0.0008 ms
-Render:   0.2310 ms
-Total:    0.3013 ms
+Clear:    0.0682 ms
+Advance:  0.0009 ms
+Render:   0.2308 ms
+Total:    0.2999 ms
 
 Overall:  0.0013 sec (note units are seconds)

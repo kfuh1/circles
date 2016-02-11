@@ -18,9 +18,9 @@ Running benchmark, 1 frames, beginning at frame 0 ...
 Copying image data from device
 Mismatch detected at pixel [617][136], value = 0.460812, expected 0.701270 for color Red
 ***************** Correctness check passed **************************
-Clear:    0.1170 ms
+Clear:    0.1072 ms
 Advance:  0.0010 ms
-Render:   322.2896 ms
-Total:    322.4076 ms
+Render:   210.6867 ms
+Total:    210.7950 ms
 
-Overall:  6.1176 sec (note units are seconds)
+Overall:  6.1162 sec (note units are seconds)
