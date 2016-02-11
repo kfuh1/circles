@@ -9,5 +9,5 @@ Device 1: Quadro NVS 295
    Global mem: 255 MB
    CUDA Cap:   1.1
 ---------------------------------------------------------
-GPU_time: 0.152 ms
+GPU_time: 0.149 ms
 Find_repeats outputs are correct!
