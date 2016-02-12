@@ -4,22 +4,24 @@ Loaded scene with 100000 circles
 ---------------------------------------------------------
 Initializing CUDA for CudaRenderer
 Found 2 CUDA devices
-Device 0: GeForce GTX 480
-   SMs:        15
-   Global mem: 1536 MB
-   CUDA Cap:   2.0
+Device 0: GeForce GTX 650
+   SMs:        2
+   Global mem: 1024 MB
+   CUDA Cap:   3.0
 Device 1: Quadro NVS 295
    SMs:        1
    Global mem: 255 MB
    CUDA Cap:   1.1
 ---------------------------------------------------------
+WARNING: You're not running on a fast GPU, please consider using NVIDIA GTX 480, 670 or 780.
+---------------------------------------------------------
 
 Running benchmark, 1 frames, beginning at frame 0 ...
 Copying image data from device
-Mismatch detected at pixel [0][0], value = 1.000000, expected 0.842340 for color Red
-Mismatch detected at pixel [0][0], value = 1.000000, expected 0.597569 for color Green
-Mismatch detected at pixel [0][0], value = 1.000000, expected 0.323406 for color Blue
-Mismatch detected at pixel [0][1], value = 1.000000, expected 0.842340 for color Red
-Mismatch detected at pixel [0][1], value = 1.000000, expected 0.597569 for color Green
-Mismatch detected at pixel [0][1], value = 1.000000, expected 0.323406 for color Blue
-ERROR : Mismatch detected between reference and actual
+***************** Correctness check passed **************************
+Clear:    0.4956 ms
+Advance:  0.0010 ms
+Render:   21372.7887 ms
+Total:    21373.2853 ms
+
+Overall:  24.9284 sec (note units are seconds)

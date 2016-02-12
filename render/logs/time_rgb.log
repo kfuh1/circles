@@ -3,10 +3,10 @@ Loaded scene with 3 circles
 ---------------------------------------------------------
 Initializing CUDA for CudaRenderer
 Found 2 CUDA devices
-Device 0: GeForce GTX 480
-   SMs:        15
-   Global mem: 1536 MB
-   CUDA Cap:   2.0
+Device 0: GeForce GTX 650
+   SMs:        2
+   Global mem: 1024 MB
+   CUDA Cap:   3.0
 Device 1: Quadro NVS 295
    SMs:        1
    Global mem: 255 MB
@@ -14,9 +14,9 @@ Device 1: Quadro NVS 295
 ---------------------------------------------------------
 
 Running benchmark, 4 frames, beginning at frame 0 ...
-Clear:    0.0683 ms
+Clear:    0.1686 ms
 Advance:  0.0009 ms
-Render:   0.2310 ms
-Total:    0.3002 ms
+Render:   0.6487 ms
+Total:    0.8182 ms
 
-Overall:  0.0013 sec (note units are seconds)
+Overall:  0.0033 sec (note units are seconds)
