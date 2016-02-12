@@ -414,7 +414,7 @@ __global__ void kernelRenderRegions(int numRegions, int numRegionsAcross) {
     float invHeight = 1.f / imageHeight;
     float4* imgPtr;
     float2 pixelCenterNorm;
-    int circleIdx, circleIdx3, diff, pixelX, pixelY, length;
+    int circleIdx, circleIdx3, pixelX, pixelY, length;
     short yTop, yBot, xLeft, xRight, minX, screenMinX;
     float3 p;
     float rad;
