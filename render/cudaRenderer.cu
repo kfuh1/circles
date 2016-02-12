@@ -16,6 +16,9 @@
 #include "exclusiveScan.cu_inl"
 #include "circleBoxTest.cu_inl"
 
+#define NUM_THREADS 1024
+#define NUM_CIRCLES 1024
+#define REGION_WH 32
 ////////////////////////////////////////////////////////////////////////////////////////
 // Putting all the cuda kernels here
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -386,19 +389,17 @@ shadePixel(int circleIndex, float2 pixelCenter, float3 p, float4* imagePtr) {
 /* for each region find the circles that afffect it using shared memory
  * to process circles in chunks. then for each pixel shade it according
  * to the lists for the regions*/
-__global__ void kernelRenderRegions(int regionWH, int numRegions) {
-    __shared__ uint circleIndicator[1024];
-    __shared__ uint circleLists[1024];
-    __shared__ uint output[1024];
-    __shared__ volatile uint scratch[2 * 1024];
+__global__ void kernelRenderRegions(int numRegions, int numRegionsAcross) {
+    __shared__ uint circleIndicator[NUM_CIRCLES];
+    __shared__ uint circleLists[NUM_CIRCLES];
+    __shared__ uint output[NUM_CIRCLES];
+    __shared__ volatile uint scratch[2 * NUM_THREADS];
 
     int imageWidth = cuConstRendererParams.imageWidth;
     int imageHeight = cuConstRendererParams.imageHeight;
     int t = threadIdx.x;
 
-    int numProcessedCircles = 1024;
-
-    int numRegionsAcross = (imageWidth + regionWH - 1) / regionWH;
+    int numProcessedCircles = NUM_THREADS;
 
     int regionX = blockIdx.x;
     int regionY = blockIdx.y;
@@ -412,15 +413,15 @@ __global__ void kernelRenderRegions(int regionWH, int numRegions) {
     float invWidth = 1.f / imageWidth;
     float invHeight = 1.f / imageHeight;
 
-    int circleIdx, circleIdx3, diff, offsetX, offsetY, pixelX, pixelY, length;
+    int circleIdx, circleIdx3, diff, pixelX, pixelY, length;
     short yTop, yBot, xLeft, xRight, minX, screenMinX;
     float3 p;
     float rad;
-    for(int circleStart = 0; circleStart < numCircles; circleStart += 1024){
+    for(int circleStart = 0; circleStart < numCircles; circleStart += NUM_CIRCLES){
         diff = numCircles - circleStart;
         //zero out regions of memory that will not be used
-        if(diff < 1024){
-            memset(circleIndicator + diff, 0, sizeof(int) * (1024 - diff));
+        if(diff < NUM_CIRCLES){
+            memset(circleIndicator + diff, 0, sizeof(int) * (NUM_CIRCLES - diff));
         }
     
         circleIdx = t + circleStart;
@@ -430,13 +431,13 @@ __global__ void kernelRenderRegions(int regionWH, int numRegions) {
             rad = cuConstRendererParams.radius[circleIdx];
     
             //top from a visual perspective so smaller value
-            yTop = regionY * regionWH; 
-            yBot = yTop + regionWH;
+            yTop = regionY * REGION_WH; 
+            yBot = yTop + REGION_WH;
             if (yBot > imageHeight) {
                 yBot = imageHeight;
             }
-            xLeft = regionX * regionWH;
-            xRight = xLeft + regionWH;
+            xLeft = regionX * REGION_WH;
+            xRight = xLeft + REGION_WH;
             if (xRight > imageWidth) {
                 xRight = imageWidth;
             }
@@ -446,23 +447,19 @@ __global__ void kernelRenderRegions(int regionWH, int numRegions) {
         }
     
          __syncthreads();
-        sharedMemExclusiveScan(t, circleIndicator, output, scratch, 1024);
+        sharedMemExclusiveScan(t, circleIndicator, output, scratch, NUM_CIRCLES);
         if(circleIndicator[t] == 1){
             circleLists[output[t]] = t + circleStart;
         }
         __syncthreads();    
-
-
-        offsetX = regionX * regionWH;
-        offsetY = regionY * regionWH;
-        pixelX = offsetX + (t % regionWH);
-        pixelY = offsetY + (t / regionWH);
-
+        
+	pixelX = (regionX * REGION_WH) + (t % REGION_WH);
+        pixelY = (regionY * REGION_WH) + (t / REGION_WH);
     
         if(pixelX < imageWidth && pixelY < imageHeight){
             //Iterate through the necessary circles given by the region 
             //corresponding to the pixel and shade the pixel
-            length = output[1023] + circleIndicator[1023];
+            length = output[NUM_CIRCLES-1] + circleIndicator[NUM_CIRCLES-1];
             for(int iter = 0; iter < length; iter++) {
                 circleIdx = circleLists[iter];
                 circleIdx3 = circleIdx * 3;
@@ -482,7 +479,7 @@ __global__ void kernelRenderRegions(int regionWH, int numRegions) {
                 shadePixel(circleIdx, pixelCenterNorm, p, imgPtr);
          
             }
-	} 
+        } 
     }
 }
 /* rendering the pixels for each circle in the case with less than 5 
@@ -768,20 +765,18 @@ CudaRenderer::render() {
             kernelRenderPixelsSmall<<<gridDim, blockDim>>>(screenMinX, screenMaxX, screenMinY, screenMaxY, numPixels, p, circleIndex);
             cudaDeviceSynchronize();
         }
-        return;
     } else {
         numPixels = image->width * image->height;
 
-        int regionWH = 32;
-        int numRegionsAcross = (image->width + regionWH - 1) / regionWH;
-        int numRegionsDown = (image->height + regionWH - 1) / regionWH;
+        int numRegionsAcross = (image->width + REGION_WH - 1) / REGION_WH;
+        int numRegionsDown = (image->height + REGION_WH - 1) / REGION_WH;
         int numRegions = numRegionsAcross * numRegionsDown;
 
-        dim3 blockDim(1024, 1);	
+        dim3 blockDim(NUM_THREADS, 1);	
         dim3 gridDim(numRegionsAcross, numRegionsDown);
-        kernelRenderRegions<<<gridDim, blockDim>>>(regionWH, numRegions);
+        kernelRenderRegions<<<gridDim, blockDim>>>(numRegions, numRegionsAcross);
         cudaDeviceSynchronize();
- }
+    }
         
 
 }
