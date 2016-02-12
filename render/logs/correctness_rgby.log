@@ -4,24 +4,22 @@ Loaded scene with 4 circles
 ---------------------------------------------------------
 Initializing CUDA for CudaRenderer
 Found 2 CUDA devices
-Device 0: GeForce GTX 650
-   SMs:        2
-   Global mem: 1024 MB
-   CUDA Cap:   3.0
+Device 0: GeForce GTX 480
+   SMs:        15
+   Global mem: 1536 MB
+   CUDA Cap:   2.0
 Device 1: Quadro NVS 295
    SMs:        1
    Global mem: 255 MB
    CUDA Cap:   1.1
 ---------------------------------------------------------
-WARNING: You're not running on a fast GPU, please consider using NVIDIA GTX 480, 670 or 780.
----------------------------------------------------------
 
 Running benchmark, 1 frames, beginning at frame 0 ...
 Copying image data from device
 ***************** Correctness check passed **************************
-Clear:    0.5014 ms
-Advance:  0.0010 ms
-Render:   215.3599 ms
-Total:    215.8622 ms
+Clear:    0.1265 ms
+Advance:  0.0012 ms
+Render:   0.1363 ms
+Total:    0.2640 ms
 
-Overall:  0.2294 sec (note units are seconds)
+Overall:  0.0144 sec (note units are seconds)

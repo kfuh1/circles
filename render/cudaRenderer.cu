@@ -412,18 +412,13 @@ __global__ void kernelRenderRegions(int numRegions, int numRegionsAcross) {
 
     float invWidth = 1.f / imageWidth;
     float invHeight = 1.f / imageHeight;
-
+    float4* imgPtr;
+    float2 pixelCenterNorm;
     int circleIdx, circleIdx3, diff, pixelX, pixelY, length;
     short yTop, yBot, xLeft, xRight, minX, screenMinX;
     float3 p;
     float rad;
-    for(int circleStart = 0; circleStart < numCircles; circleStart += NUM_CIRCLES){
-        diff = numCircles - circleStart;
-        //zero out regions of memory that will not be used
-        if(diff < NUM_CIRCLES){
-            memset(circleIndicator + diff, 0, sizeof(int) * (NUM_CIRCLES - diff));
-        }
-    
+    for(int circleStart = 0; circleStart < numCircles; circleStart += NUM_CIRCLES){ 
         circleIdx = t + circleStart;
         if(circleIdx < numCircles) {
             circleIdx3 = circleIdx * 3;
@@ -445,15 +440,17 @@ __global__ void kernelRenderRegions(int numRegions, int numRegionsAcross) {
                   circleInBoxConservative(p.x * imageWidth, p.y * imageHeight,
                   imageHeight * rad, xLeft, xRight, yBot, yTop);
         }
-    
-         __syncthreads();
+        else{
+            circleIndicator[t] = 0;
+        }
+        __syncthreads();
         sharedMemExclusiveScan(t, circleIndicator, output, scratch, NUM_CIRCLES);
         if(circleIndicator[t] == 1){
             circleLists[output[t]] = t + circleStart;
         }
         __syncthreads();    
         
-	pixelX = (regionX * REGION_WH) + (t % REGION_WH);
+        pixelX = (regionX * REGION_WH) + (t % REGION_WH);
         pixelY = (regionY * REGION_WH) + (t / REGION_WH);
     
         if(pixelX < imageWidth && pixelY < imageHeight){
@@ -471,9 +468,9 @@ __global__ void kernelRenderRegions(int numRegions, int numRegionsAcross) {
                                                                                       
                 // a bunch of clamps.  Is there a CUDA built-in for this?
                 screenMinX = (minX > 0) ? ((minX < imageWidth) ? minX : imageWidth) : 0;
-                float4* imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (pixelY * imageWidth + screenMinX)]);
+                imgPtr = (float4*)(&cuConstRendererParams.imageData[4 * (pixelY * imageWidth + screenMinX)]);
                 imgPtr = imgPtr + (pixelX - screenMinX);
-                float2 pixelCenterNorm = make_float2(invWidth * (static_cast<float>(pixelX) + 0.5f),
+                pixelCenterNorm = make_float2(invWidth * (static_cast<float>(pixelX) + 0.5f),
                                 invHeight * (static_cast<float>(pixelY) + 0.5f));
       
                 shadePixel(circleIdx, pixelCenterNorm, p, imgPtr);
